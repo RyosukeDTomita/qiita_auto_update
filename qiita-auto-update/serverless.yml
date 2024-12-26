@@ -1,0 +1,30 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: sigma18
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+app: qiita-update-app
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: qiita-auto-update
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+  timeout: 10
+  environment:
+    QIITA_ACCESS_TOKEN: ${env:QIITA_ACCESS_TOKEN}
+
+functions:
+  rateHandler:
+    handler: handler.run
+    events:
+      - schedule: rate(1 day)
+
+plugins:
+  - serverless-dotenv-plugin
+
+custom:
+  dotenv:
+    basePath: ./
+
+package:
+  include:
+    - ../node_modules/**
