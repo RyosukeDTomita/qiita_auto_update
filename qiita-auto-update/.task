@@ -1,0 +1,43 @@
+現在のコードは記事のURLをリストで渡し，そのURLの記事のいいね数とストック数などを出力しています。
+
+この仕様を以下に変更してください。
+
+1. 更新したい記事のURLを指定して記事内容を取得
+2. 記事の中に含まれるURLの中から，アドベントカレンダーのURL(advent-calendar)を除いたQiitaのURLを取得
+3. それぞれのQiitaのURLのいいね数とストック数を取得
+4. 更新したい記事として指定したURLの記事のリンクの下に1行改行した後，いいね数とストック数を追加。すでに存在する場合には更新する。
+
+以下が現在更新したい記事の内容をmdにしたものです。
+
+---
+
+## アドベントカレンダー
+
+https://qiita.com/advent-calendar/2024/sigma_security
+
+---
+
+## 開発環境エンハンス
+
+https://qiita.com/sigma_devsecops/items/af7ea7f1b29a3d23117b
+
+https://qiita.com/sigma_devsecops/items/94b94e3e994d60ec4c1d
+
+https://qiita.com/sigma_devsecops/items/79db1640d1a1cd82343d
+
+https://qiita.com/sigma_devsecops/items/906c01de696af10fd73e
+
+---
+
+## その他技術
+
+https://qiita.com/sigma_devsecops/items/990f7d3c231e810a86f1
+
+---
+
+
+## ポエム・時事ネタ
+
+https://qiita.com/sigma_devsecops/items/9cd46139e43e12211637
+
+https://qiita.com/sigma_devsecops/items/aeed45cf4d255a0957ea
