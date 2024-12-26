@@ -12,8 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.run = void 0;
-exports.getArticleInfo = getArticleInfo;
+exports.getArticleInfo = exports.run = void 0;
 const axios_1 = __importDefault(require("axios"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
@@ -47,6 +46,7 @@ function getArticleInfo(articleURL) {
         }
     });
 }
+exports.getArticleInfo = getArticleInfo;
 /**
  * URLから記事IDを取得する
  */

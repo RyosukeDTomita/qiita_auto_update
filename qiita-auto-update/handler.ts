@@ -1,5 +1,6 @@
 import axios from "axios";
 import dotenv from "dotenv";
+import { APIGatewayProxyEvent } from "aws-lambda";
 
 dotenv.config();
 const BASE_URL = "https://qiita.com/api/v2";
@@ -46,7 +47,7 @@ function getArticleIdFromUrl(url: string): string {
  * @param event - AWS Lambdaのイベント
  * @returns - Lambdaのレスポンス
  */
-export const run = async (event: any) => {
+export const run = async (event: APIGatewayProxyEvent) => {
   console.log("Lambda function executed", event);
   const articleUris = [
     "https://qiita.com/sigma_devsecops/items/af7ea7f1b29a3d23117b",
