@@ -8,8 +8,8 @@
     "strict": true,
     "skipLibCheck": true,
     "noEmitOnError": true,
-    "noImplicitAny": true,
+    "noImplicitAny": true
   },
   "include": ["qiita-auto-update/handler.ts"],
-  "compileOnSave": true
+  "compileOnSave": true,
 }
