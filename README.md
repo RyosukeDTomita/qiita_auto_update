@@ -70,6 +70,7 @@ npx tsc --init
   "compileOnSave": true
 }
 ```
+
 > [!NOTE]
 > `package.json`のtypeも同じくcommonjsにあわせる必要がある。
 
@@ -91,12 +92,20 @@ npx tsc --init
 
 ## HOW TO USE
 
-1. fix `targetURI` in [./qiita-auto-update/handler.ts](./qiita-auto-update/handler.ts).
-2. deploy to aws lambda
+1. prepare QIITA_ACCESS_TOKEN from [qiita settings page](https://qiita.com/settings/applications)
+2. create `.env` file in the root directory and write `QIITA_ACCESS_TOKEN` and `TARGET_URI`
 
-```shell
-cd qiita-auto-update
-sls deploy
-```
+  ```shell
+  cat .env
+  QIITA_ACCESS_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  TARGET_URI=https://qiita.com/your_account/items/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  ```
+
+3. deploy to aws lambda
+
+  ```shell
+  cd qiita-auto-update
+  sls deploy
+  ```
 
 ---
