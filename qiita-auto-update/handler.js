@@ -16,9 +16,22 @@ exports.run = void 0;
 const axios_1 = __importDefault(require("axios"));
 const dotenv_1 = __importDefault(require("dotenv"));
 // import { APIGatewayProxyEvent } from "aws-lambda";
-dotenv_1.default.config();
 const BASE_URL = "https://qiita.com/api/v2";
-const QIITA_ACCESS_TOKEN = process.env.QIITA_ACCESS_TOKEN;
+/**
+ * .envから環境変数を取得する
+ */
+function getEnv() {
+    dotenv_1.default.config();
+    const TARGET_URL = process.env.TARGET_URI;
+    if (!TARGET_URL) {
+        throw new Error("NO TARGET_URI in .env");
+    }
+    const QIITA_ACCESS_TOKEN = process.env.QIITA_ACCESS_TOKEN;
+    if (!QIITA_ACCESS_TOKEN) {
+        throw new Error("NO QIITA_ACCESS_TOKEN in .env");
+    }
+    return { TARGET_URL, QIITA_ACCESS_TOKEN };
+}
 /**
  * URLから記事IDをパース
  */
@@ -30,7 +43,7 @@ function getArticleIdFromUrl(url) {
  * 記事の内容を取得する。
  * @param articleURL - 取得したい記事のURL
  */
-function getArticleContent(articleURL) {
+function getArticleContent(QIITA_ACCESS_TOKEN, articleURL) {
     return __awaiter(this, void 0, void 0, function* () {
         const articleId = getArticleIdFromUrl(articleURL);
         try {
@@ -63,7 +76,7 @@ function extractQiitaUrls(content) {
  * @param articleURL - 取得したい記事のURL
  * @returns - views，いいね数，ストック数
  */
-function getArticleInfo(articleURL) {
+function getArticleInfo(QIITA_ACCESS_TOKEN, articleURL) {
     return __awaiter(this, void 0, void 0, function* () {
         const articleId = getArticleIdFromUrl(articleURL);
         try {
@@ -89,7 +102,7 @@ function getArticleInfo(articleURL) {
  * 記事のタイトルを取得する。
  * @param articleURL - 取得したい記事のURL
  */
-function getArticleTitle(articleURL) {
+function getArticleTitle(QIITA_ACCESS_TOKEN, articleURL) {
     return __awaiter(this, void 0, void 0, function* () {
         const articleId = getArticleIdFromUrl(articleURL);
         try {
@@ -111,13 +124,13 @@ function getArticleTitle(articleURL) {
  * @param articleURL - 更新したい記事のURL
  * @param updatedContent - 更新後の内容
  */
-function updateArticle(articleURL, updatedContent) {
+function updateArticle(QIITA_ACCESS_TOKEN, articleURL, updatedContent) {
     return __awaiter(this, void 0, void 0, function* () {
         const articleId = getArticleIdFromUrl(articleURL);
         console.log("更新後の内容:", updatedContent);
         try {
             // NOTE: 記事のタイトルがないと更新に失敗するため，タイトルを取得
-            const articleTitle = yield getArticleTitle(articleURL);
+            const articleTitle = yield getArticleTitle(QIITA_ACCESS_TOKEN, articleURL);
             yield axios_1.default.patch(`${BASE_URL}/items/${articleId}`, {
                 title: articleTitle,
                 body: updatedContent,
@@ -141,33 +154,24 @@ function updateArticle(articleURL, updatedContent) {
  */
 // NOTE: 特にイベント情報は使っていないのでany型に戻した
 const run = (event) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("Lambda function executed", event);
-    const updateURL = "https://qiita.com/sigma_devsecops/items/59af6d7f45397217ddd2"; // FIXME: 任意の記事URLに変更
-    try {
-        // 記事の内容を取得し，QiitaのURLを抽出
-        let content = yield getArticleContent(updateURL);
-        const qiitaUrls = extractQiitaUrls(content);
-        // 各QiitaのURLに対していいね数とストック数を取得し，記事内容を更新
-        for (const url of qiitaUrls) {
-            const { pageViewsCount, likesCount, stocksCount } = yield getArticleInfo(url);
-            const viewsLikeStockInfo = `views: ${pageViewsCount},いいね数: ${likesCount},ストック数: ${stocksCount}\n`;
-            if (content.includes(url)) {
-                const regex = new RegExp(`(${url}\\s*\\n)(views: \\d+,いいね数: \\d+,ストック数: \\d+\\n)?`);
-                content = content.replace(regex, `$1${viewsLikeStockInfo}`);
-            }
+    const { TARGET_URL, QIITA_ACCESS_TOKEN } = getEnv();
+    // TARGET_URLの記事内容を取得し，QiitaのURLを抽出
+    let content = yield getArticleContent(QIITA_ACCESS_TOKEN, TARGET_URL);
+    const qiitaUrls = extractQiitaUrls(content);
+    // 各QiitaのURLに対していいね数とストック数を取得し，記事内容を更新
+    for (const url of qiitaUrls) {
+        const { pageViewsCount, likesCount, stocksCount } = yield getArticleInfo(QIITA_ACCESS_TOKEN, url);
+        const viewsLikeStockInfo = `views: ${pageViewsCount},いいね数: ${likesCount},ストック数: ${stocksCount}\n`;
+        if (content.includes(url)) {
+            const regex = new RegExp(`(${url}\\s*\\n)(views: \\d+,いいね数: \\d+,ストック数: \\d+\\n)?`);
+            content = content.replace(regex, `$1${viewsLikeStockInfo}`);
         }
-        yield updateArticle(updateURL, content);
-        return {
-            statusCode: 200,
-            body: JSON.stringify({ message: "Success" }),
-        };
     }
-    catch (error) {
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ message: error.message }),
-        };
-    }
+    yield updateArticle(QIITA_ACCESS_TOKEN, TARGET_URL, content);
+    return {
+        statusCode: 200,
+        body: JSON.stringify({ message: "Success" }),
+    };
 });
 exports.run = run;
 // ローカルから実行するための設定

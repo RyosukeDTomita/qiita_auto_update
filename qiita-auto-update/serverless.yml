@@ -16,7 +16,7 @@ functions:
   rateHandler:
     handler: handler.run
     events:
-      - schedule: rate(1 day)
+      - schedule: rate(7 days)
 
 plugins:
   - serverless-dotenv-plugin
