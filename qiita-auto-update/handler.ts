@@ -163,19 +163,19 @@ export const run = async (event: any) => {
   const { TARGET_URL, QIITA_ACCESS_TOKEN } = getEnv();
 
   // TARGET_URLの記事内容を取得し，QiitaのURLを抽出
-  const { urls: qiitaUrls, content: originalContent } = await getQiitaUrlsFromArticle(QIITA_ACCESS_TOKEN, TARGET_URL);
-  let content = originalContent;
+  const { urls: qiitaUrls,  content: originalContent } = await getQiitaUrlsFromArticle(QIITA_ACCESS_TOKEN, TARGET_URL);
+  let updateContent = originalContent
 
   // 各QiitaのURLに対していいね数とストック数を取得し，記事内容を更新
   for (const url of qiitaUrls) {
     const { pageViewsCount, likesCount, stocksCount } = await getArticleInfo(QIITA_ACCESS_TOKEN, url);
     const viewsLikeStockInfo = `views: ${pageViewsCount},いいね数: ${likesCount},ストック数: ${stocksCount}\n`;
-    if (content.includes(url)) {
+    if (updateContent.includes(url)) {
       const regex = new RegExp(`(${url}\\s*\\n)(views: \\d+,いいね数: \\d+,ストック数: \\d+\\n)?`);
-      content = content.replace(regex, `$1${viewsLikeStockInfo}`);
+      updateContent = updateContent.replace(regex, `$1${viewsLikeStockInfo}`);
     }
   }
-  await updateArticle(QIITA_ACCESS_TOKEN, TARGET_URL, content);
+  await updateArticle(QIITA_ACCESS_TOKEN, TARGET_URL, updateContent);
 
   return {
     statusCode: 200,
@@ -184,7 +184,7 @@ export const run = async (event: any) => {
 };
 
 
-// ローカルから実行する
+// ローカルから実行する用
 if (require.main === module) {
   (async () => { const result = await run({});
     console.log("Lambda Execution Result:", result);

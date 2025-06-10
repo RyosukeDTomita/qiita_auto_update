@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.run = void 0;
 const axios_1 = __importDefault(require("axios"));
 const dotenv_1 = __importDefault(require("dotenv"));
-// import { APIGatewayProxyEvent } from "aws-lambda";
 const BASE_URL = "https://qiita.com/api/v2";
 /**
  * .envから環境変数を取得する
@@ -170,24 +169,24 @@ const run = (event) => __awaiter(void 0, void 0, void 0, function* () {
     const { TARGET_URL, QIITA_ACCESS_TOKEN } = getEnv();
     // TARGET_URLの記事内容を取得し，QiitaのURLを抽出
     const { urls: qiitaUrls, content: originalContent } = yield getQiitaUrlsFromArticle(QIITA_ACCESS_TOKEN, TARGET_URL);
-    let content = originalContent;
+    let updateContent = originalContent;
     // 各QiitaのURLに対していいね数とストック数を取得し，記事内容を更新
     for (const url of qiitaUrls) {
         const { pageViewsCount, likesCount, stocksCount } = yield getArticleInfo(QIITA_ACCESS_TOKEN, url);
         const viewsLikeStockInfo = `views: ${pageViewsCount},いいね数: ${likesCount},ストック数: ${stocksCount}\n`;
-        if (content.includes(url)) {
+        if (updateContent.includes(url)) {
             const regex = new RegExp(`(${url}\\s*\\n)(views: \\d+,いいね数: \\d+,ストック数: \\d+\\n)?`);
-            content = content.replace(regex, `$1${viewsLikeStockInfo}`);
+            updateContent = updateContent.replace(regex, `$1${viewsLikeStockInfo}`);
         }
     }
-    yield updateArticle(QIITA_ACCESS_TOKEN, TARGET_URL, content);
+    yield updateArticle(QIITA_ACCESS_TOKEN, TARGET_URL, updateContent);
     return {
         statusCode: 200,
         body: JSON.stringify({ message: "Success" }),
     };
 });
 exports.run = run;
-// ローカルから実行する
+// ローカルから実行する用
 if (require.main === module) {
     (() => __awaiter(void 0, void 0, void 0, function* () {
         const result = yield (0, exports.run)({});
