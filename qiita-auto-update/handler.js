@@ -62,7 +62,8 @@ function getArticleContent(QIITA_ACCESS_TOKEN, articleURL) {
 }
 /**
  *
- * 記事内容からadvent-calendarのURLを除いたQiitaのURLを抽出する
+ *
+ *  記事内容からadvent-calendarのURLを除いたQiitaのURLを抽出する
  * @param content - 記事内容
  * @returns - 抽出したQiitaのURLの配列
  */
@@ -148,16 +149,28 @@ function updateArticle(QIITA_ACCESS_TOKEN, articleURL, updatedContent) {
     });
 }
 /**
+ * TARGET_URLに記載された伸びた記事の一覧が記載された記事からQiitaのURLのみを抽出する。
+ * @param QIITA_ACCESS_TOKEN - QiitaのアクセストークN
+ * @param TARGET_URL - 処理対象の記事URL
+ * @returns - 抽出したQiitaのURLの配列と記事内容
+ */
+function getQiitaUrlsFromArticle(QIITA_ACCESS_TOKEN, TARGET_URL) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const content = yield getArticleContent(QIITA_ACCESS_TOKEN, TARGET_URL);
+        const urls = extractQiitaUrls(content);
+        return { urls, content };
+    });
+}
+/**
  * AWS Lambdaのエントリーポイント
  * @param event - AWS Lambdaのイベント
  * @returns - Lambdaのレスポンス
  */
-// NOTE: 特にイベント情報は使っていないのでany型に戻した
 const run = (event) => __awaiter(void 0, void 0, void 0, function* () {
     const { TARGET_URL, QIITA_ACCESS_TOKEN } = getEnv();
     // TARGET_URLの記事内容を取得し，QiitaのURLを抽出
-    let content = yield getArticleContent(QIITA_ACCESS_TOKEN, TARGET_URL);
-    const qiitaUrls = extractQiitaUrls(content);
+    const { urls: qiitaUrls, content: originalContent } = yield getQiitaUrlsFromArticle(QIITA_ACCESS_TOKEN, TARGET_URL);
+    let content = originalContent;
     // 各QiitaのURLに対していいね数とストック数を取得し，記事内容を更新
     for (const url of qiitaUrls) {
         const { pageViewsCount, likesCount, stocksCount } = yield getArticleInfo(QIITA_ACCESS_TOKEN, url);
@@ -174,7 +187,7 @@ const run = (event) => __awaiter(void 0, void 0, void 0, function* () {
     };
 });
 exports.run = run;
-// ローカルから実行するための設定
+// ローカルから実行する
 if (require.main === module) {
     (() => __awaiter(void 0, void 0, void 0, function* () {
         const result = yield (0, exports.run)({});
