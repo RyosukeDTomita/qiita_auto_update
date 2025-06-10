@@ -1,6 +1,5 @@
 import axios from "axios";
 import dotenv from "dotenv";
-// import { APIGatewayProxyEvent } from "aws-lambda";
 
 const BASE_URL = "https://qiita.com/api/v2";
 
@@ -53,7 +52,8 @@ async function getArticleContent(QIITA_ACCESS_TOKEN:string, articleURL: string):
 
 /**
  * 
- * 記事内容からadvent-calendarのURLを除いたQiitaのURLを抽出する
+ *
+ *  記事内容からadvent-calendarのURLを除いたQiitaのURLを抽出する
  * @param content - 記事内容
  * @returns - 抽出したQiitaのURLの配列
  */
@@ -62,7 +62,6 @@ function extractQiitaUrls(content: string): string[] {
   const urls = content.match(urlRegex) || [];
   return urls.filter(url => !url.includes("advent-calendar"));
 }
-
 
 
 /**
@@ -91,7 +90,6 @@ async function getArticleInfo(QIITA_ACCESS_TOKEN:string, articleURL: string): Pr
     throw new Error("記事情報の取得に失敗しました");
   }
 }
-
 
 
 /**
@@ -144,28 +142,40 @@ async function updateArticle(QIITA_ACCESS_TOKEN: string, articleURL: string, upd
 
 
 /**
+ * TARGET_URLに記載された伸びた記事の一覧が記載された記事からQiitaのURLのみを抽出する。
+ * @param QIITA_ACCESS_TOKEN - QiitaのアクセストークN
+ * @param TARGET_URL - 処理対象の記事URL
+ * @returns - 抽出したQiitaのURLの配列と記事内容
+ */
+async function getQiitaUrlsFromArticle(QIITA_ACCESS_TOKEN: string, TARGET_URL: string): Promise<{urls: string[], content: string}> {
+  const content = await getArticleContent(QIITA_ACCESS_TOKEN, TARGET_URL);
+  const urls = extractQiitaUrls(content);
+  return { urls, content };
+}
+
+
+/**
  * AWS Lambdaのエントリーポイント
  * @param event - AWS Lambdaのイベント
  * @returns - Lambdaのレスポンス
  */
-// NOTE: 特にイベント情報は使っていないのでany型に戻した
 export const run = async (event: any) => {
   const { TARGET_URL, QIITA_ACCESS_TOKEN } = getEnv();
 
   // TARGET_URLの記事内容を取得し，QiitaのURLを抽出
-  let content = await getArticleContent(QIITA_ACCESS_TOKEN, TARGET_URL);
-  const qiitaUrls = extractQiitaUrls(content);
+  const { urls: qiitaUrls,  content: originalContent } = await getQiitaUrlsFromArticle(QIITA_ACCESS_TOKEN, TARGET_URL);
+  let updateContent = originalContent
 
   // 各QiitaのURLに対していいね数とストック数を取得し，記事内容を更新
   for (const url of qiitaUrls) {
     const { pageViewsCount, likesCount, stocksCount } = await getArticleInfo(QIITA_ACCESS_TOKEN, url);
     const viewsLikeStockInfo = `views: ${pageViewsCount},いいね数: ${likesCount},ストック数: ${stocksCount}\n`;
-    if (content.includes(url)) {
+    if (updateContent.includes(url)) {
       const regex = new RegExp(`(${url}\\s*\\n)(views: \\d+,いいね数: \\d+,ストック数: \\d+\\n)?`);
-      content = content.replace(regex, `$1${viewsLikeStockInfo}`);
+      updateContent = updateContent.replace(regex, `$1${viewsLikeStockInfo}`);
     }
   }
-  await updateArticle(QIITA_ACCESS_TOKEN, TARGET_URL, content);
+  await updateArticle(QIITA_ACCESS_TOKEN, TARGET_URL, updateContent);
 
   return {
     statusCode: 200,
@@ -174,10 +184,9 @@ export const run = async (event: any) => {
 };
 
 
-// ローカルから実行するための設定
+// ローカルから実行する用
 if (require.main === module) {
-  (async () => {
-    const result = await run({});
+  (async () => { const result = await run({});
     console.log("Lambda Execution Result:", result);
   })();
 }
