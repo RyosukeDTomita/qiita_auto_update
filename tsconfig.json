@@ -10,6 +10,6 @@
     "noEmitOnError": true,
     "noImplicitAny": true
   },
-  "include": ["qiita-auto-update/handler.ts"],
+  "include": ["qiita-auto-update/handler.ts", "qiita-auto-update/listUserArticles.ts"],
   "compileOnSave": true,
 }

@@ -101,7 +101,16 @@ npx tsc --init
   TARGET_URI=https://qiita.com/your_account/items/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   ```
 
-3. deploy to aws lambda
+3. run locally
+
+  ```shell
+  mise run qiita-auto-update
+  # or
+  cd qiita-auto-update
+  npx ts-node handler.ts
+  ```
+
+4. deploy to aws lambda
 
   ```shell
   cd qiita-auto-update

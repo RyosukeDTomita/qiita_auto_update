@@ -1,0 +1,4 @@
+[tasks.qiita-auto-update]
+description = "update Qiita LGTM, Stock count."
+run = "dir=${HOME}/qiita_auto_update/qiita-auto-update; cd $dir; npx ts-node ${dir}/handler.ts"
+alias = "qupdate"
