@@ -120,7 +120,7 @@ npx tsc --init
 ### サブツール: 全記事一覧取得 (`listUserArticles.ts`)
 
 指定ユーザの全記事をいいね数順に取得し、`qiita-auto-update/lgtm.txt` に保存するスクリプトです。
-`TARGET_URI` に追加したい記事のURLを探す際などに使います。
+伸びた記事があるのに一覧に追加していなものがないか確認するために使う。
 
 `.env` に `QIITA_USER_ID` を追加してから実行してください。
 
