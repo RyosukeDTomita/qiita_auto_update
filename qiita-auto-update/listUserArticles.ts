@@ -1,4 +1,3 @@
-import axios from "axios";
 import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
@@ -36,11 +35,14 @@ async function fetchUserArticles(
   const articles: QiitaArticle[] = [];
   let page = 1;
   while (true) {
-    const response = await axios.get(`${BASE_URL}/users/${userId}/items`, {
-      params: { page, per_page: PER_PAGE },
+    const url = new URL(`${BASE_URL}/users/${userId}/items`);
+    url.searchParams.set("page", String(page));
+    url.searchParams.set("per_page", String(PER_PAGE));
+    const response = await fetch(url.toString(), {
       headers: { Authorization: `Bearer ${QIITA_ACCESS_TOKEN}` },
     });
-    const items: QiitaArticle[] = response.data;
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const items = await response.json() as QiitaArticle[];
     if (items.length === 0) break;
     for (const item of items) {
       articles.push({

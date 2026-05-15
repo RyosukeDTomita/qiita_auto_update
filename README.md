@@ -117,4 +117,23 @@ npx tsc --init
   sls deploy
   ```
 
+### サブツール: 全記事一覧取得 (`listUserArticles.ts`)
+
+指定ユーザの全記事をいいね数順に取得し、`qiita-auto-update/lgtm.txt` に保存するスクリプトです。
+`TARGET_URI` に追加したい記事のURLを探す際などに使います。
+
+`.env` に `QIITA_USER_ID` を追加してから実行してください。
+
+```shell
+# .env に追記
+QIITA_USER_ID=your_qiita_user_id
+```
+
+```shell
+cd qiita-auto-update
+npx ts-node listUserArticles.ts
+```
+
+実行すると標準出力にいいね数・URL・タイトルが表示され、`lgtm.txt` に `<URL> <いいね数>` 形式で保存されます。
+
 ---

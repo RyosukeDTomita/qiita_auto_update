@@ -1,4 +1,3 @@
-import axios from "axios";
 import dotenv from "dotenv";
 
 const BASE_URL = "https://qiita.com/api/v2";
@@ -36,13 +35,14 @@ function getArticleIdFromUrl(url: string): string {
 async function getArticleContent(QIITA_ACCESS_TOKEN:string, articleURL: string): Promise<string> {
   const articleId = getArticleIdFromUrl(articleURL);
   try {
-    const response = await axios.get(`${BASE_URL}/items/${articleId}`, {
+    const response = await fetch(`${BASE_URL}/items/${articleId}`, {
       headers: {
         Authorization: `Bearer ${QIITA_ACCESS_TOKEN}`,
       },
     });
-
-    return response.data.body;
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json() as any;
+    return data.body;
   } catch (error: unknown) {
     console.error("記事内容の取得に失敗しました:", (error as any).message);
     throw new Error("記事内容の取得に失敗しました");
@@ -72,13 +72,13 @@ function extractQiitaUrls(content: string): string[] {
 async function getArticleInfo(QIITA_ACCESS_TOKEN:string, articleURL: string): Promise<{ pageViewsCount: number, likesCount: number, stocksCount: number }> {
   const articleId = getArticleIdFromUrl(articleURL);
   try {
-    const response = await axios.get(`${BASE_URL}/items/${articleId}`, {
+    const response = await fetch(`${BASE_URL}/items/${articleId}`, {
       headers: {
         Authorization: `Bearer ${QIITA_ACCESS_TOKEN}`,
       },
     });
-
-    const data = response.data;
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json() as any;
     const likesCount = data.likes_count; // いいね数
     const stocksCount = data.stocks_count; // ストック数
     const pageViewsCount = data.page_views_count; // PV数
@@ -99,13 +99,14 @@ async function getArticleInfo(QIITA_ACCESS_TOKEN:string, articleURL: string): Pr
 async function getArticleTitle(QIITA_ACCESS_TOKEN:string, articleURL: string): Promise<string> {
   const articleId = getArticleIdFromUrl(articleURL);
   try {
-    const response = await axios.get(`${BASE_URL}/items/${articleId}`, {
+    const response = await fetch(`${BASE_URL}/items/${articleId}`, {
       headers: {
         Authorization: `Bearer ${QIITA_ACCESS_TOKEN}`,
       },
     });
-
-    return response.data.title;
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json() as any;
+    return data.title;
   } catch (error: unknown) {
     console.error("記事タイトルの取得に失敗しました:", (error as any).message);
     throw new Error("記事タイトルの取得に失敗しました");
@@ -125,15 +126,15 @@ async function updateArticle(QIITA_ACCESS_TOKEN: string, articleURL: string, upd
     // NOTE: 記事のタイトルがないと更新に失敗するため，タイトルを取得
     const articleTitle = await getArticleTitle(QIITA_ACCESS_TOKEN, articleURL);
 
-    await axios.patch(`${BASE_URL}/items/${articleId}`, {
-      title: articleTitle,
-      body: updatedContent,
-    }, {
+    const patchResponse = await fetch(`${BASE_URL}/items/${articleId}`, {
+      method: "PATCH",
       headers: {
         Authorization: `Bearer ${QIITA_ACCESS_TOKEN}`,
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({ title: articleTitle, body: updatedContent }),
     });
+    if (!patchResponse.ok) throw new Error(`HTTP ${patchResponse.status}`);
   } catch (error: unknown) {
     console.error("記事の更新に失敗しました:", (error as any).message);
     throw new Error("記事の更新に失敗しました");
